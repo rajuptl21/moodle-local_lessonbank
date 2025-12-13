@@ -97,7 +97,7 @@ class list_minilessons extends external_api
         $params['moduleid'] = $DB->get_field('modules', 'id', ['name' => 'minilesson']);
         $params['ctxlevel'] = CONTEXT_MODULE;
 
-        $fields = "cm.id AS cmid, m.id, m.name,m.ttslanguage AS language,ctx.id AS contextid, mi.itemtypes";
+        $fields = "cm.id AS cmid, m.id, m.name,m.ttslanguage AS language,m.nativelang,ctx.id AS contextid, mi.itemtypes";
         $from = "{minilesson} m JOIN {course_modules} cm ON cm.instance = m.id";
         $from .= " JOIN {context} ctx ON ctx.instanceid = cm.id AND ctx.contextlevel = :ctxlevel";
         $from .= " LEFT JOIN (
@@ -232,6 +232,9 @@ class list_minilessons extends external_api
             }
             $record->viewurl = new moodle_url('/mod/minilesson/view.php', ['id' => $record->cmid]);
             $record->viewurl = $record->viewurl->out(false);
+            if (!empty($record->nativelang)) {
+                $record->nativelanguage = $record->nativelang;
+            }
 
             $record->shortdesc = shorten_text(
                 $record->description, 150, false,
@@ -282,6 +285,7 @@ class list_minilessons extends external_api
             'id' => new external_value(PARAM_INT, 'id of minilesson'),
             'name' => new external_value(PARAM_TEXT, 'name of minilesson'),
             'language' => new external_value(PARAM_TEXT, 'language of minilesson'),
+            'nativelanguage' => new external_value(PARAM_TEXT, 'native language of minilesson', VALUE_OPTIONAL),
             'description' => new external_value(PARAM_TEXT, 'description of minilesson'),
             'shortdesc' => new external_value(PARAM_RAW, 'description of minilesson'),
             'version' => new external_value(PARAM_TEXT, 'version information of minilesson'),

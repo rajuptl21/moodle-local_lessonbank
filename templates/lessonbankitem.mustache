@@ -33,6 +33,9 @@
             <div class="d-flex">
                 <p>{{language}}</p>
                 <p class="ml-2">{{languagelevel}}</p>
+                <p class="ml-auto">{{#str}}nativelang, mod_minilesson{{/str}} :
+                    {{#nativelanguage}} {{{.}}} {{/nativelanguage}} {{^nativelanguage}} {{#str}}none{{/str}} {{/nativelanguage}}
+                </p>
             </div>
             <div class="d-flex">
                 <p><b class="mr-2">{{#str}}keywordcolon, local_lessonbank{{/str}}</b>{{keywords}}</p>
