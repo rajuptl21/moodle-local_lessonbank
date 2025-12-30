@@ -25,7 +25,23 @@
 }}
 
 <div class="searchbox row no-gutters justify-content-between">
-    {{#items}}
-        {{> local_lessonbank/lessonbankitem}}
-    {{/items}}
+    {{#islistlayot}}
+        {{> local_lessonbank/lessonbanklistitem}}
+    {{/islistlayot}}
+    {{^islistlayot}}
+        {{#lessonitems}}
+            {{> local_lessonbank/lessonbankitem}}
+        {{/lessonitems}}
+        {{^lessonitems}}
+            <p class="bg-secondary p-3 text-center w-100"><b>{{#str}}nolessonitemfound, local_lessonbank{{/str}}</b></p>
+        {{/lessonitems}}
+    {{/islistlayot}}
+    <div class="d-flex p-0 justify-content-between mt-1">
+        {{#haspreviousbutton}}
+            <button data-action="previousbtn" data-perpage="{{perpage}}" data-page="{{page}}" class="previouspagebtn btn btn-primary mr-auto"><i class="fa fa-arrow-left"></i> {{#str}}previous{{/str}}</button>
+        {{/haspreviousbutton}}
+        {{#hasnextbutton}}
+            <button data-action="nextbtn" data-perpage="{{perpage}}" data-page="{{page}}" class="nextpagebtn btn btn-primary ml-auto">{{#str}}next{{/str}} <i class="fa fa-arrow-right"></i></button>
+        {{/hasnextbutton}}
+    </div>
 </div>

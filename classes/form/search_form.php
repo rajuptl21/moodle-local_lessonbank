@@ -30,6 +30,9 @@ require_once($CFG->libdir . '/formslib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class search_form extends moodleform {
+
+    const PERPAGE = 10;
+
     protected function definition() {
         $mform = $this->_form;
 
@@ -64,6 +67,14 @@ class search_form extends moodleform {
         $mform->addElement('html', '</div>');
 
         $mform->addElement('html', '</div>');
+
+        $mform->addElement('hidden', 'page');
+        $mform->setType('page', PARAM_INT);
+        $mform->setDefault('page', 1);
+
+        $mform->addElement('hidden', 'perpage');
+        $mform->setType('perpage', PARAM_INT);
+        $mform->setDefault('perpage', self::PERPAGE);
     }
 
 }

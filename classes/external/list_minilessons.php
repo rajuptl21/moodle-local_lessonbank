@@ -67,6 +67,8 @@ class list_minilessons extends external_api
                 []
             ),
             'keywords' => new external_value(PARAM_RAW, 'Key words', VALUE_DEFAULT),
+            'page' => new external_value(PARAM_INT, 'Page number', VALUE_DEFAULT, 1),
+            'perpage' => new external_value(PARAM_INT, 'Perpage count', VALUE_DEFAULT, 10),
         ]);
     }
 
@@ -76,8 +78,10 @@ class list_minilessons extends external_api
      * @param string $language
      * @param string $level
      * @param string $keywords
+     * @param int $page
+     * @param int $perpage
      */
-    public static function execute($language, $level, $keywords)
+    public static function execute($language, $level, $keywords, $page, $perpage)
     {
         global $DB;
         // Parameter validation.
@@ -85,12 +89,16 @@ class list_minilessons extends external_api
             'language' => $language,
             'level' => $levels,
             'keywords' => $keywords,
+            'page' => $page,
+            'perpage' => $perpage
         ] = self::validate_parameters(
                     self::execute_parameters(),
                     [
                         'language' => $language,
                         'level' => $level,
                         'keywords' => $keywords,
+                        'page' => $page,
+                        'perpage' => $perpage
                     ]
                 );
 
@@ -104,7 +112,7 @@ class list_minilessons extends external_api
             SELECT minilesson AS minilessonid,GROUP_CONCAT(DISTINCT type) AS itemtypes
             FROM {minilesson_rsquestions} GROUP BY minilesson
         ) mi ON mi.minilessonid = m.id";
-        $where = "cm.module = :moduleid AND cm.visible = 1";
+        $where = "cm.module = :moduleid AND cm.visible = 1 AND cm.deletioninprogress = 0 ";
 
         $modcustomfieldhandler = mod_handler::create();
         $allfieldshorts = self::CUSTOMFIELDS;
@@ -124,6 +132,8 @@ class list_minilessons extends external_api
                             AND {$customdatatablealias}.instanceid = cm.id";
                         $datacontroller = data_controller::create(0, null, $field);
                         $datafield = $datacontroller->datafield();
+
+                        $where .= " AND COALESCE({$customdatatablealias}.value, '') <> ''";
 
                         $dbfield = $customdatasql = "{$customdatatablealias}.{$datafield}";
 
@@ -205,7 +215,19 @@ class list_minilessons extends external_api
             $params['langcode'] = trim($language);
         }
         $sql = "SELECT {$fields} FROM {$from} WHERE {$where}";
-        $records = $DB->get_records_sql($sql, $params);
+        $limitfrom = ($page > 1) ? ($page - 1) * $perpage : 0;
+        $records = $DB->get_records_sql($sql, $params, $limitfrom, $perpage);
+        $countsql = "SELECT COUNT(cm.id) FROM {$from} WHERE {$where}";
+        $totalrecords = $DB->get_field_sql($countsql, $params);
+        if (empty($totalrecords)) {
+            $totalrecords = 0;
+        }
+        $totalpages = ceil($totalrecords / $perpage);
+        if (empty($totalpages)) {
+            $totalpages = 1;
+        }
+        $shownextbutton = $page < $totalpages;
+        $showpreviousbutton = $page > 1;
         foreach ($records as $record) {
 
             if (array_key_exists($record->language, $alllangs)) {
@@ -232,6 +254,7 @@ class list_minilessons extends external_api
             }
             $record->viewurl = new moodle_url('/mod/minilesson/view.php', ['id' => $record->cmid]);
             $record->viewurl = $record->viewurl->out(false);
+            $record->itemcount = 0;
             if (!empty($record->nativelang)) {
                 $record->nativelanguage = $record->nativelang;
             }
@@ -241,7 +264,7 @@ class list_minilessons extends external_api
                 '<button type="button" data-action="showtext">' . get_string('more'). '</button>'
             );
 
-            if ($record->itemtypes) {
+            if (!empty($record->itemtypes)) {
                 $record->itemtypes = array_map(
                     fn($itemtype) => (object) [
                         'text' => get_string($itemtype, 'mod_minilesson')
@@ -250,6 +273,7 @@ class list_minilessons extends external_api
                 );
                 sort($record->itemtypes);
                 end($record->itemtypes)->islast = true;
+                $record->itemcount = count($record->itemtypes);
             } else {
                 unset($record->itemtypes);
             }
@@ -257,30 +281,21 @@ class list_minilessons extends external_api
 
         // Ensure that we always return something array like and that will satisfy our external structure.
         $returnrecords = [];
-        if ($records && !empty($records)) {
-            foreach ($records as $record) {
-                $allfieldsexist = true;
-                foreach ($allfieldshorts as $key => $customfield) {
-                    if (!isset($record->{$customfield}) || empty($record->{$customfield})) {
-                        $allfieldsexist = false;
-                        break;
-                    }
-                }
-                if ($allfieldsexist) {
-                    $returnrecords[] = $record;
-                }
-            }
-        }
+        $returnrecords['lessonitems'] = $records;
+        $returnrecords['totalitems'] = $totalrecords;
+        $returnrecords['hasnextbutton'] = $shownextbutton;
+        $returnrecords['haspreviousbutton'] = $showpreviousbutton;
+        $returnrecords['perpage'] = $perpage;
+        $returnrecords['page'] = $page;
         return $returnrecords;
     }
 
     /**
      * Describe the return structure for local_lessonbank_list_minilessons
      *
-     * @return external_multiple_structure
+     * @return external_single_structure
      */
-    public static function execute_returns(): external_multiple_structure
-    {
+    public static function execute_returns(): external_single_structure {
         $contentstructure = new external_single_structure([
             'id' => new external_value(PARAM_INT, 'id of minilesson'),
             'name' => new external_value(PARAM_TEXT, 'name of minilesson'),
@@ -303,7 +318,17 @@ class list_minilessons extends external_api
                 'all items used in minilesson',
                 VALUE_OPTIONAL
             ),
+            'itemcount' => new external_value(PARAM_INT, 'Count item types'),
         ]);
-        return new external_multiple_structure($contentstructure);
+
+        return new external_single_structure([
+                'lessonitems' => new external_multiple_structure($contentstructure),
+                'totalitems' => new external_value(PARAM_INT, 'Total items'),
+                'hasnextbutton' => new external_value(PARAM_BOOL, 'Next button'),
+                'haspreviousbutton' => new external_value(PARAM_BOOL, 'Previos button'),
+                'perpage' => new external_value(PARAM_INT, 'Per page items count'),
+                'page' => new external_value(PARAM_INT, 'Page number')
+            ],
+        );
     }
 }

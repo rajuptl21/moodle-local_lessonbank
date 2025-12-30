@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['descriptioncolon'] = 'Description:';
+$string['foundlessons'] = 'Found {$a} lessons';
 $string['items'] = 'Items';
 $string['itemscolon'] = 'Items:';
 $string['keywordcolon'] = 'Keyword:';
@@ -33,5 +34,9 @@ $string['keywords'] = 'Keywords';
 $string['lessonbank'] = 'Lesson bank';
 $string['lessonbankcatname'] = 'Lesson bank';
 $string['level'] = 'Level';
+$string['nolessonitemfound'] = 'No item found';
+$string['perpage'] = 'Per page';
 $string['pluginname'] = 'Lessonbank';
 $string['showadvanced'] = 'Show advanced';
+$string['targetlang'] = 'Target Lang';
+$string['title'] = 'Title';

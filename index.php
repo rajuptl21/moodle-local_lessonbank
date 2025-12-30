@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\html_writer;
 use local_lessonbank\form\search_form;
 
 require('../../config.php');
@@ -38,11 +39,18 @@ $searchform = new search_form(attributes: ['id' => 'local_lessonbank_filters']);
 
 $PAGE->requires->js_call_amd('local_lessonbank/searchform', 'registerFilter');
 
+$lessonbankcontrolsdata = [
+    'lessonbankitemcount' => get_string('foundlessons', 'local_lessonbank', 0),
+    'paginationoptions' => [10, 25, 50, 100]
+];
+
 echo $OUTPUT->header();
 
 echo html_writer::start_div('container');
 
 echo $searchform->render();
+
+echo $OUTPUT->render_from_template('local_lessonbank/lessonbankcontrols', $lessonbankcontrolsdata);
 
 echo html_writer::div(
     $OUTPUT->render_from_template(

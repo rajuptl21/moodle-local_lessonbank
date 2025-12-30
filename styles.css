@@ -75,3 +75,51 @@
 #page-local-lessonbank-index .searchbox  [data-region="itemcard"] [data-region="image"] {
   gap: 3px;
 }
+
+#page-local-lessonbank-index .lessonbanklayoutbox {
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  overflow: hidden;
+}
+#page-local-lessonbank-index .listlayoutbtn,
+#page-local-lessonbank-index .gridlayoutbtn {
+  border: 0;
+}
+
+#page-local-lessonbank-index .gridlayoutbtn.active,
+#page-local-lessonbank-index .gridlayoutbtn.active:focus,
+#page-local-lessonbank-index .listlayoutbtn.active:focus,
+#page-local-lessonbank-index .listlayoutbtn.active {
+  background-color: #1177d1;
+  color: white;
+  border: 1px solid #1177d1;
+  border-radius: 0;
+}
+
+#page-local-lessonbank-index .listlayout .listtable .searchimg {
+  width: 200px;
+  height: auto;
+  min-width: 200px;
+}
+
+#page-local-lessonbank-index .listlayout .listtable .listdescription {
+  width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#page-local-lessonbank-index .listlayout .listtable tr td,
+#page-local-lessonbank-index .listlayout .listtable tr th {
+  vertical-align: middle;
+}
+
+#page-local-lessonbank-index .listlayout .listtable th:last-child,
+#page-local-lessonbank-index .listlayout .listtable td:last-child {
+  width: 200px;
+  white-space: nowrap;
+}
+
+#page-local-lessonbank-index .listlayout .listtable .levelcolumn,
+#page-local-lessonbank-index .listlayout .listtable .lnagcolumn {
+  white-space: nowrap;
+}
